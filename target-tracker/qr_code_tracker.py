@@ -141,18 +141,23 @@ class QRLandingPadTracker:
             self.qr_detector.setEpsX(0.3)  # Horizontal sensitivity (default is 0.2)
             self.qr_detector.setEpsY(0.2)  # Vertical sensitivity (default is 0.1)
         
-        # Convert color format if needed (OpenCV uses BGR, PiCamera uses RGB)
+        # Convert color format if needed
         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
-        # Try to detect QR code
-        found, points = self.qr_detector.detect(frame_bgr)
+        try:
+            # Try to detect QR code
+            found, points = self.qr_detector.detect(frame_bgr)
+            
+            if found and points is not None and len(points) > 0:
+                # Ensure points is properly formatted
+                points = points.astype(np.int32)
+                # Check if points are valid
+                if not np.isnan(points).any() and not np.isinf(points).any():
+                    return points
+        except Exception as e:
+            print(f"QR detection error: {e}")
         
-        if found:
-            # Convert points to the format expected by the rest of the code
-            points = points.astype(np.int32)
-            return points
-        else:
-            return None
+        return None
     
     def order_points(self, pts):
         """Order points in [top-left, top-right, bottom-right, bottom-left] order."""
@@ -318,22 +323,32 @@ class QRLandingPadTracker:
     def display_target_info(self, display_img, params, full_qr_detected):
         """Display landing target information on the image."""
         # Draw coordinate axes
-        axes_length = 0.05  # Length of axes in meters
-        imgpts, _ = cv2.projectPoints(
-            np.array([
-                [0, 0, 0],
-                [axes_length, 0, 0],
-                [0, axes_length, 0],
-                [0, 0, axes_length]
-            ], dtype=np.float32),
-            params['rvec'], params['tvec'], self.camera_matrix, self.dist_coeffs
-        )
-        
-        imgpts = imgpts.astype(int)
-        origin = tuple(imgpts[0].ravel())
-        display_img = cv2.line(display_img, origin, tuple(imgpts[1].ravel()), (0, 0, 255), 2)  # X-axis (red)
-        display_img = cv2.line(display_img, origin, tuple(imgpts[2].ravel()), (0, 255, 0), 2)  # Y-axis (green)
-        display_img = cv2.line(display_img, origin, tuple(imgpts[3].ravel()), (255, 0, 0), 2)  # Z-axis (blue)
+        try:
+            # Draw coordinate axes
+            axes_length = 0.05  # Length of axes in meters
+            imgpts, _ = cv2.projectPoints(
+                np.array([
+                    [0, 0, 0],
+                    [axes_length, 0, 0],
+                    [0, axes_length, 0],
+                    [0, 0, axes_length]
+                ], dtype=np.float32),
+                params['rvec'], params['tvec'], self.camera_matrix, self.dist_coeffs
+            )
+            # Check for valid points before drawing
+            if not np.isnan(imgpts).any() and not np.isinf(imgpts).any():
+                imgpts = imgpts.astype(int)
+                origin = tuple(imgpts[0].ravel())
+                # Additional safety check for valid coordinates
+                if (0 <= origin[0] < display_img.shape[1] and 
+                    0 <= origin[1] < display_img.shape[0]):
+                    # Only draw if coordinates are within image bounds
+                    display_img = cv2.line(display_img, origin, tuple(imgpts[1].ravel()), (0, 0, 255), 2)  # X-axis (red)
+                    display_img = cv2.line(display_img, origin, tuple(imgpts[2].ravel()), (0, 255, 0), 2)  # Y-axis (green)
+                    display_img = cv2.line(display_img, origin, tuple(imgpts[3].ravel()), (255, 0, 0), 2)  # Z-axis (blue)
+        except Exception as e:
+            # Silently handle projection errors
+            pass
         
         # Format MAVLink parameters for display
         text_lines = [
