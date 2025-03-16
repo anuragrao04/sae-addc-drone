@@ -14,8 +14,8 @@ class QRLandingPadTracker:
     def __init__(self, 
                  calibration_file='camera_calibration.pkl', 
                  known_qr_size_cm=10.0,
-                 camera_resolution=(640, 480),
-                 min_distance_for_decode=0.5):  # 50cm threshold for QR decoding
+                 camera_resolution=(1280, 720),
+                 min_distance_for_decode=1):  # 100cm threshold for QR decoding
         
         # Initialize picamera2
         self.picam2 = Picamera2()
@@ -130,122 +130,29 @@ class QRLandingPadTracker:
     
     def detect_finder_patterns(self, frame):
         """
-        Detect the three QR code finder patterns (the squares in three corners).
-        Returns the coordinates of the patterns if found, or None otherwise.
+        Use OpenCV's QRCodeDetector to detect QR codes without decoding.
+        Returns corner points if found, or None otherwise.
         """
-        # Convert to grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-        
-        # Apply threshold to create binary image
-        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        
-        # Find contours
-        contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # We need to identify contours that form the hierarchical pattern of the QR finder pattern
-        # (a square within a square within a square)
-        hierarchy = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[1]
-        
-        # Find potential finder patterns (squares with a specific hierarchy)
-        potential_finders = []
-        
-        # Process hierarchy
-        if len(hierarchy) > 0:
-            # Get hierarchy array
-            hierarchy_array = hierarchy[0]
+        # Create QR detector if it doesn't exist yet
+        if not hasattr(self, 'qr_detector'):
+            self.qr_detector = cv2.QRCodeDetector()
             
-            # Process each contour
-            for i, contour in enumerate(contours):
-                # Skip small contours
-                if cv2.contourArea(contour) < 100:
-                    continue
-                
-                # Check if approximately square shaped
-                perimeter = cv2.arcLength(contour, True)
-                approx = cv2.approxPolyDP(contour, 0.04 * perimeter, True)
-                
-                if len(approx) == 4:  # It's a quadrilateral
-                    # Check if it's approximately square
-                    x, y, w, h = cv2.boundingRect(approx)
-                    aspect_ratio = float(w) / h
-                    
-                    if 0.8 <= aspect_ratio <= 1.2:  # Square-ish
-                        potential_finders.append((i, contour, approx))
+            # Set epsilon parameters for detection sensitivity
+            self.qr_detector.setEpsX(0.3)  # Horizontal sensitivity (default is 0.2)
+            self.qr_detector.setEpsY(0.2)  # Vertical sensitivity (default is 0.1)
         
-        # Group finder patterns that are close to each other
-        finder_patterns = []
-        processed = set()
+        # Convert color format if needed (OpenCV uses BGR, PiCamera uses RGB)
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
-        for i, contour, approx in potential_finders:
-            if i in processed:
-                continue
-                
-            # Get center of this contour
-            M = cv2.moments(contour)
-            if M["m00"] == 0:
-                continue
-            
-            cx = int(M["m10"] / M["m00"])
-            cy = int(M["m01"] / M["m00"])
-            
-            # Check if it forms a corner with two other patterns
-            matches = []
-            for j, other_contour, other_approx in potential_finders:
-                if j in processed or i == j:
-                    continue
-                
-                # Get center of other contour
-                M_other = cv2.moments(other_contour)
-                if M_other["m00"] == 0:
-                    continue
-                
-                cx_other = int(M_other["m10"] / M_other["m00"])
-                cy_other = int(M_other["m01"] / M_other["m00"])
-                
-                # Check if the centers are within a reasonable distance
-                distance = np.sqrt((cx - cx_other)**2 + (cy - cy_other)**2)
-                
-                # This threshold depends on the expected size of the QR code
-                if distance < 300:  # Adjust based on your needs
-                    matches.append((j, other_contour, other_approx, (cx_other, cy_other)))
-            
-            # If we have found at least 2 potential matches, this might be part of a finder pattern
-            if len(matches) >= 2:
-                # Mark this and matched contours as processed
-                processed.add(i)
-                corner_points = [approx]
-                centers = [(cx, cy)]
-                
-                for j, other_contour, other_approx, center in matches:
-                    processed.add(j)
-                    corner_points.append(other_approx)
-                    centers.append(center)
-                
-                # We have found a potential finder pattern
-                finder_patterns.append((corner_points, centers))
+        # Try to detect QR code
+        found, points = self.qr_detector.detect(frame_bgr)
         
-        # Now filter further to find three patterns in a square arrangement
-        if len(finder_patterns) >= 3:
-            # Calculate centers of all finder patterns
-            all_centers = []
-            for _, centers in finder_patterns:
-                for center in centers:
-                    all_centers.append(center)
-            
-            # If there are at least 3 centers, we can check if they form a right angle
-            if len(all_centers) >= 3:
-                # Convert to numpy array for easier manipulation
-                centers_array = np.array(all_centers)
-                
-                # Find the corners of the QR code by analyzing the centers
-                hull = cv2.convexHull(np.array(centers_array, dtype=np.int32))
-                
-                # If we have a quadrilateral, we likely have a QR code
-                if 3 <= len(hull) <= 4:
-                    return hull
-        
-        # No finder patterns in a valid arrangement found
-        return None
+        if found:
+            # Convert points to the format expected by the rest of the code
+            points = points.astype(np.int32)
+            return points
+        else:
+            return None
     
     def order_points(self, pts):
         """Order points in [top-left, top-right, bottom-right, bottom-left] order."""
