@@ -474,10 +474,10 @@ if __name__ == "__main__":
                         help='Path to camera calibration file (default: camera_calibration.pkl)')
     parser.add_argument('--qr-size', type=float, default=10.0, 
                         help='Known size of QR code in cm (default: 10.0)')
-    parser.add_argument('--resolution', type=str, default='640,480',
-                        help='Camera resolution in format "width,height" (default: 640,480)')
-    parser.add_argument('--decode-distance', type=float, default=0.5,
-                        help='Minimum distance in meters for QR code decoding (default: 0.5)')
+    parser.add_argument('--resolution', type=str, default='1280, 720',
+                        help='Camera resolution in format "width,height" (default: 1280,720)')
+    parser.add_argument('--decode-distance', type=float, default=1,
+                        help='Minimum distance in meters for QR code decoding (default: 1)')
     
     args = parser.parse_args()
     
