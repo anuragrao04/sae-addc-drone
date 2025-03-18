@@ -2,7 +2,6 @@
 import numpy as np
 import cv2
 import math
-import pickle
 import time
 import os
 import argparse
@@ -199,9 +198,33 @@ class SimpleArucoTracker:
                 # Calculate distance
                 params = self.calculate_distance(corners)
                 if params:
-                    # Draw axes
-                    cv2.aruco.drawAxis(display_img, self.camera_matrix, self.dist_coeffs, 
-                                      params['rvec'], params['tvec'], self.marker_size_m/2)
+                    # Draw axes manually (compatible with all OpenCV versions)
+                    try:
+                        # Project axis points
+                        axis_length = self.marker_size_m / 2
+                        axis_points = np.array([
+                            [0, 0, 0],           # Origin
+                            [axis_length, 0, 0], # X-axis
+                            [0, axis_length, 0], # Y-axis
+                            [0, 0, axis_length]  # Z-axis
+                        ], dtype=np.float32)
+                        
+                        imgpts, _ = cv2.projectPoints(
+                            axis_points, params['rvec'], params['tvec'], 
+                            self.camera_matrix, self.dist_coeffs
+                        )
+                        
+                        # Draw each axis 
+                        origin = tuple(imgpts[0].ravel().astype(int))
+                        x_point = tuple(imgpts[1].ravel().astype(int))
+                        y_point = tuple(imgpts[2].ravel().astype(int))
+                        z_point = tuple(imgpts[3].ravel().astype(int))
+                        
+                        display_img = cv2.line(display_img, origin, x_point, (0, 0, 255), 3) # X-axis: Red
+                        display_img = cv2.line(display_img, origin, y_point, (0, 255, 0), 3) # Y-axis: Green
+                        display_img = cv2.line(display_img, origin, z_point, (255, 0, 0), 3) # Z-axis: Blue
+                    except Exception as e:
+                        print(f"Warning: Could not draw axes - {e}")
                     
                     # Draw distance info
                     distance_text = f"Distance: {params['distance']:.2f}m"
