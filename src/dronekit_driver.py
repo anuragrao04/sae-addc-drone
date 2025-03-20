@@ -8,7 +8,9 @@ class Driver:
         # 3. sets variables
         pass
 
-    def set_home_location
+    def set_home_location(self) -> bool:
+        # sets the current location of the drone as home location
+        return True
 
     def set_guided_mode(self) -> bool:
         # sets the drone to guided mode, returns success
@@ -29,4 +31,10 @@ class Driver:
         # for example: if the current height is 30m, and drop_height is 2, the drone is supposed to go to 30-2 = 28m altitude
         # returns success
         return True
-
+    
+    # the values are obtained from landing_target.py
+    # the main function then calls this method to send it to the drone
+    # see: https://github.com/dronedojo/pidronescripts/blob/a74d509a7b3a3b64aae7c0fcd3109f8136bf9b6b/dk/drone/taco_delivery.py#L152
+    def send_landing_target_vals(self, vals: dict) -> None:
+        # sends the landing target vals to the drone
+        pass
