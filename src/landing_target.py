@@ -8,8 +8,8 @@ class LandingTarget:
     # if (qr_readable?): return landing target vals wrt qr
     # elif (aruco_readable?): return landing target vals wrt aruco
     # else: return None
-    def get_lading_target_vals(self):
-        pass
+    def get_lading_target_vals(self) -> tuple:
+        return ()
     
     # methods prepended with _ are helper methods
     # attempts to read a qr code from the given frame. Returns it's coordinates in the frame. 
