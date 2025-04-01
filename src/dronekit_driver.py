@@ -6,6 +6,7 @@ class Driver:
     home_location = () # tuple of (lat, long, heading, alt)
     safe_height = 15
     vehicle = None  # DroneKit vehicle object
+
     def __init__(self, drop_location: tuple, safe_height: int) -> None:
         # 1. connect to the drone
         self.vehicle = connect('/dev/ttyAMA0', wait_ready=True, baud=57600)
@@ -104,3 +105,5 @@ class Driver:
     def send_landing_target_vals(self, vals: tuple) -> None:
         # sends the landing target vals to the drone
         pass
+    
+    

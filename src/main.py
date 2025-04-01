@@ -17,7 +17,8 @@ def main():
     drop_location = tuple(map(float, args.drop_location.split(',')))
     # drop location will now be a tuple of lat, long, heading, alt
     safe_height = args.safe_height
-
+    #create servo instance
+    servo = servo.servo_controller()
     # 1. create an instance of LandingTarget
     landingTarget = landing_target.LandingTarget()
     # 2. create an instance of Driver
