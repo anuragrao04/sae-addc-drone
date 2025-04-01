@@ -98,8 +98,11 @@ class Driver():
         point = LocationGlobalRelative(self.drop_location[0], self.drop_location[1], desired_height)
         self.vehicle.simple_goto(point)
         new_height=self.vehicle.location.global_frame.alt
+        while not (0.95 * desired_height <= new_height <= 1.05 * desired_height):
+            print(f"Altitude: {self.vehicle.location.global_relative_frame.alt:.2f}m")
         if 0.95 * desired_height <= new_height <= 1.05 * desired_height:
-            return True 
+            return True     
+        
     
     def lower_to_detect_landing_target(self) -> None:
         # lowers the drone to 10m (experimental value - we should find the ideal height where the camera starts detecting a landing target, 10m is just a number I pulled out of my ass, it might change in the future)
