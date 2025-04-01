@@ -2,6 +2,7 @@ class Driver:
     drop_location = () # tuple of (lat, long, heading, alt)
     home_location = () # tuple of (lat, long, heading, alt)
     safe_height = 15
+    
     def __init__(self, drop_location: tuple, safe_height: int) -> None:
         # 1. connect to vehicle
         # 2. other initialization checks
@@ -43,3 +44,5 @@ class Driver:
     def send_landing_target_vals(self, vals: tuple) -> None:
         # sends the landing target vals to the drone
         pass
+    
+    
