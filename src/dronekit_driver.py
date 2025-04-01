@@ -1,10 +1,10 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 import time
 
-class Driver:
+class Driver():
     drop_location = () # tuple of (lat, long, heading, alt)
     home_location = () # tuple of (lat, long, heading, alt)
-    safe_height = 15
+    safe_height = None
     vehicle = None  # DroneKit vehicle object
 
     def __init__(self, drop_location: tuple, safe_height: int) -> None:
@@ -93,11 +93,21 @@ class Driver:
         # drops the height of the drone by drop_height (represented in meters)
         # for example: if the current height is 30m, and drop_height is 2, the drone is supposed to go to 30-2 = 28m altitude
         # returns success
-        return True
+        current_height= self.vehicle.location.global_frame.alt
+        desired_height=current_height-drop_height
+        point = LocationGlobalRelative(self.drop_location[0], self.drop_location[1], desired_height)
+        self.vehicle.simple_goto(point)
+        new_height=self.vehicle.location.global_frame.alt
+        while not (0.95 * desired_height <= new_height <= 1.05 * desired_height):
+            print(f"Altitude: {self.vehicle.location.global_relative_frame.alt:.2f}m")
+        if 0.95 * desired_height <= new_height <= 1.05 * desired_height:
+            return True     
+        
     
     def lower_to_detect_landing_target(self) -> None:
         # lowers the drone to 10m (experimental value - we should find the ideal height where the camera starts detecting a landing target, 10m is just a number I pulled out of my ass, it might change in the future)
-        pass
+        point = LocationGlobalRelative(self.drop_location[0], self.drop_location[1], 10)
+        self.vehicle.simple_goto(point)
     
     # the values are obtained from landing_target.py
     # the main function then calls this method to send it to the drone
