@@ -1,7 +1,7 @@
 import argparse
 import dronekit_driver
 import landing_target
-
+import servo
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     # drop location will now be a tuple of lat, long, heading, alt
     safe_height = args.safe_height
     #create servo instance
-    servo = servo.servo_controller()
+    motor = servo.servo_controller()
     # 1. create an instance of LandingTarget
     landingTarget = landing_target.LandingTarget()
     # 2. create an instance of Driver
@@ -51,7 +51,9 @@ def main():
     driver.send_landing_target_vals(landing_target_vals)
 
     # 10. land
+    
     # 11. actuate the motor to drop the anda
+    motor.controlServo()
     # 12. wait for a few seconds
     # 13. arm and takeoff
     # 14. simple goto home location set at step 3
