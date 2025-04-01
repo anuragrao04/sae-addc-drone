@@ -47,6 +47,8 @@ class Driver:
             print("Waiting for vehicle to arm...")
             time.sleep(1)
         print("Vehicle is now armed")
+        #sleep time to let the motors reach proper speed
+        time.sleep(3)
 
         # Takeoff to target altitude
         self.vehicle.simple_takeoff(self.safe_height)
