@@ -1,17 +1,14 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 import time
-
+import motor
+from pymavlink import mavutil
 class Driver():
-    drop_location = () # tuple of (lat, long, heading, alt)
-    home_location = () # tuple of (lat, long, heading, alt)
-    safe_height = None
-    vehicle = None  # DroneKit vehicle object
-
     def __init__(self, drop_location: tuple, safe_height: int) -> None:
         # 1. connect to the drone
         self.vehicle = connect('/dev/ttyAMA0', wait_ready=True, baud=57600)
         # Connect drone with raspberry pi, using physical port and not udp, 
         # coz it will be faster
+        self.motor = motor.MotorController(self.vehicle)
         # 2. TODO: other initialization checks
         
         # 3. sets variables
@@ -100,10 +97,8 @@ class Driver():
         new_height=self.vehicle.location.global_frame.alt
         while not (0.95 * desired_height <= new_height <= 1.05 * desired_height):
             print(f"Altitude: {self.vehicle.location.global_relative_frame.alt:.2f}m")
-        if 0.95 * desired_height <= new_height <= 1.05 * desired_height:
-            return True     
-        
-    
+        return True
+
     def lower_to_detect_landing_target(self) -> None:
         # lowers the drone to 10m (experimental value - we should find the ideal height where the camera starts detecting a landing target, 10m is just a number I pulled out of my ass, it might change in the future)
         point = LocationGlobalRelative(self.drop_location[0], self.drop_location[1], 10)
@@ -112,8 +107,47 @@ class Driver():
     # the values are obtained from landing_target.py
     # the main function then calls this method to send it to the drone
     # see: https://github.com/dronedojo/pidronescripts/blob/a74d509a7b3a3b64aae7c0fcd3109f8136bf9b6b/dk/drone/taco_delivery.py#L152
-    def send_landing_target_vals(self, vals: tuple) -> None:
+    def send_landing_target_vals(self, angle_x: float, angle_y: float) -> None:
         # sends the landing target vals to the drone
-        pass
-    
-    
+        msg = self.vehicle.message_factory.landing_target_encode(
+            0,
+            0,
+            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+            angle_x,
+            angle_y,
+            0,
+            0,
+            0,)
+        self.vehicle.send_mavlink(msg)
+        self.vehicle.flush()
+
+    def switch_to_land_mode(self):
+        # sets the drone to land mode, returns success
+        self.vehicle.mode = VehicleMode('LAND')
+        # Wait until the mode change is complete
+        while not self.vehicle.mode.name == 'LAND':
+            print("Waiting for LAND mode...")
+            time.sleep(1)
+        print("Vehicle is now in LAND mode")
+        return True
+
+    def is_landed(self) -> bool:
+        # returns whether the drone has landed or not
+        # if it's arm, it's udi udi
+        # else it's on floor
+        return not self.vehicle.armed
+
+    def drop_the_anda(self):
+        # drops the damn anda
+        self.motor.open()
+        time.sleep(5)
+        self.motor.stop()
+
+    def go_home(self):
+        # goes to home location
+        # switch to RTL mode
+        self.vehicle.mode = VehicleMode('RTL')
+        while not self.vehicle.mode.name == 'RTL':
+            print("Waiting for RTL mode...")
+            time.sleep(1)
+        print("Vehicle is now in RTL mode")

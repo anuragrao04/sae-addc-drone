@@ -1,7 +1,6 @@
-from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 
-class ServoController:
+class MotorController:
     def __init__(self, vehicle):
         self.vehicle = vehicle  # Store vehicle instance
         self.servoNo = 9  # ArduPilot AUX port for PWM output

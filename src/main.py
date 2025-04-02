@@ -1,7 +1,7 @@
 import argparse
+import time
 import dronekit_driver
 import landing_target
-import servo
 
 
 def main():
@@ -18,7 +18,6 @@ def main():
     # drop location will now be a tuple of lat, long, heading, alt
     safe_height = args.safe_height
     #create servo instance
-    motor = servo.servo_controller()
     # 1. create an instance of LandingTarget
     landingTarget = landing_target.LandingTarget()
     # 2. create an instance of Driver
@@ -41,26 +40,26 @@ def main():
     # 6. lower the drone to 10m
     driver.lower_to_detect_landing_target()
 
-    # 7. get landing target vals
-    landing_target_vals = None
-    while(landing_target_vals == None):
-        driver.drop_height(0.5) # drops height by 50cm
-        landing_target_vals = landingTarget.get_lading_target_vals()
-
-    # 8. send landing target vals
-    driver.send_landing_target_vals(landing_target_vals)
+    # 69. Switch drone to land mode
+    driver.switch_to_land_mode()
 
     # 10. land
+    while(not driver.is_landed()):
+        la_target = landingTarget.get_landing_target_vals()
+        if (la_target is None):
+            print("No landing target detected.")
+        driver.send_landing_target_vals(*la_target)
     
     # 11. actuate the motor to drop the anda
-    motor.controlServo()
+    driver.drop_the_anda()
     # 12. wait for a few seconds
+    time.sleep(5)
     # 13. arm and takeoff
-    # 14. simple goto home location set at step 3
-    # 15. lower recursively to find aruco marker landing target
-    # 16. land
+    driver.arm_and_takeoff()
+
+    # 14. RTL home location set at step 3
+    driver.go_home()
     # 17. party!
-    pass
 
 if __name__ == '__main__':
     main()
