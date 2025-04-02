@@ -25,40 +25,40 @@ def main():
 
 
     # 3. set home location
-    success = driver.set_home_location()
-    if (not success):
-        print("Failed to set home location. Exiting.")
-        return
+    # success = driver.set_home_location()
+    # if (not success):
+    #     print("Failed to set home location. Exiting.")
+    #     return
 
     # 4. arm and takeoff
-    driver.arm_and_takeoff()
-
-    # 5. go to drop location
-    driver.go_to_drop_location()
-
-    # 6. lower the drone to 10m
-    driver.lower_to_detect_landing_target()
-
-    # 69. Switch drone to land mode
-    driver.switch_to_land_mode()
-
-    # 10. land
-    while(not driver.is_landed()):
-        la_target = landingTarget.get_landing_target_vals()
-        if (la_target is None):
-            print("No landing target detected.")
-        else:
-            driver.send_landing_target_vals(*la_target)
-    
+    # driver.arm_and_takeoff()
+    #
+    # # # 5. go to drop location
+    # # driver.go_to_drop_location()
+    #
+    # # 6. lower the drone to 10m
+    # driver.lower_to_detect_landing_target()
+    #
+    # # 69. Switch drone to land mode
+    # driver.switch_to_land_mode()
+    #
+    # # 10. land
+    # while(not driver.is_landed()):
+    #     la_target = landingTarget.get_landing_target_vals()
+    #     if (la_target is None):
+    #         print("No landing target detected.")
+    #     else:
+    #         driver.send_landing_target_vals(*la_target)
+    # 
     # 11. actuate the motor to drop the anda
     driver.drop_the_anda()
     # 12. wait for a few seconds for the anda to drop
-    time.sleep(5)
-    # 13. arm and takeoff
-    driver.arm_and_takeoff()
-
-    # 14. RTL home location set at step 3
-    driver.go_home()
+    # time.sleep(5)
+    # # 13. arm and takeoff
+    # driver.arm_and_takeoff()
+    #
+    # # 14. RTL home location set at step 3
+    # driver.go_home()
     # 17. party!
 
 if __name__ == '__main__':

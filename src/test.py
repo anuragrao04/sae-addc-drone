@@ -33,8 +33,8 @@ def main():
     # 4. arm and takeoff
     driver.arm_and_takeoff()
 
-    # 5. go to drop location
-    driver.go_to_drop_location()
+    # # 5. go to drop location
+    # driver.go_to_drop_location()
 
     # 6. lower the drone to 10m
     driver.lower_to_detect_landing_target()

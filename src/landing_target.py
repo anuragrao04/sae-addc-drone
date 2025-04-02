@@ -182,6 +182,7 @@ class LandingTarget():
                 text_file = open("qr_content.txt", "w")
                 text_file.write(qr_data)
                 text_file.close()
+                self.qr_content_saved = True
 
         landing_target_vals = self.calculate_landing_target_params(qr_corners)
         # returns this shit {
