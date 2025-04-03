@@ -2,7 +2,7 @@ import math
 import cv2
 import cv2.aruco as aruco
 import numpy as np
-import Picamera2
+from picamera2 import Picamera2
 from libcamera import controls
 import os
 import pickle
@@ -11,15 +11,15 @@ from pyzbar.pyzbar import decode
 class LandingTarget():
     def __init__(self,
                  calibration_file='camera_calibration.pkl', 
-                 known_qr_size_cm=10.0,
+                 known_qr_size_cm=28.5,
                  camera_resolution=(1280, 720),
                  ) -> None:
         self.qr_content_saved = False
         self.picam2 = Picamera2()
         self.qr_detector = cv2.QRCodeDetector()
         # Set epsilon parameters for detection sensitivity
-        self.qr_detector.setEpsX(0.3)  # Horizontal sensitivity (default is 0.2)
-        self.qr_detector.setEpsY(0.2)  # Vertical sensitivity (default is 0.1)
+        self.qr_detector.setEpsX(0.9)  # Horizontal sensitivity (default is 0.2)
+        self.qr_detector.setEpsY(0.9)  # Vertical sensitivity (default is 0.1)
         # Configure the camera
         config = self.picam2.create_still_configuration(
             main={"size": camera_resolution, "format": "RGB888"}
@@ -78,8 +78,15 @@ class LandingTarget():
     def _get_qr_corners(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         qr_codes = decode(gray)
-        qr_code = qr_codes[0]
-        if qr_codes is not None: return np.array([(p.x, p.y) for p in qr_code.polygon], dtype=np.float32), qr_codes[0].data.decode('utf-8')
+
+        if len(qr_codes) > 0:
+            qr_code = qr_codes[0]
+            print("qr code fully decoded!")
+        else:
+            qr_code = None
+
+        if qr_code is not None: return np.array([(p.x, p.y) for p in qr_code.polygon], dtype=np.float32), qr_code.data.decode('utf-8')
+        print("proceeding to find finder patterns")
 
         frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         found, points = self.qr_detector.detect(frame_bgr)
@@ -87,8 +94,10 @@ class LandingTarget():
             points = points.astype(np.int32)
             if not np.isnan(points).any() and not np.isinf(points).any():
                 # we've found a qr code and the points are not fucking insane
-                return points, None
-
+                print("we've found a qr code and the points are not fucking insane")
+                return points[0], None
+        
+        print("No qr codes pa")
         return None, None
 
     def order_points(self, pts):

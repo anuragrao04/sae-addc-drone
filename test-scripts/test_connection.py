@@ -4,7 +4,7 @@ from dronekit import connect, VehicleMode
 # Import DroneKit-Python
 
 # Connect to the Vehicle.
-vehicle = connect('COM3',  baud=57600)
+vehicle = connect('/dev/ttyAMA0',  baud=57600)
 
 # Get some vehicle attributes (state)
 print ("Get some vehicle attribute values:")

@@ -6,11 +6,13 @@ from pymavlink import mavutil
 class Driver():
     def __init__(self, drop_location: tuple, safe_height: int) -> None:
         # 1. connect to the drone
-        self.vehicle = connect('/dev/ttyAMA0', wait_ready=True, baud=57600)
-        self.vehicle.parameters['PLND_ENABLED'] = 1
-        self.vehicle.parameters['PLND_TYPE'] = 1 ##1 for companion computer
-        self.vehicle.parameters['PLND_EST_TYPE'] = 0 ##0 for raw sensor, 1 for kalman filter pos estimation
-        self.vehicle.parameters['LAND_SPEED'] = 20 ##Descent speed of 30cm/s
+        print("Trying to connect to the damn drone")
+        self.vehicle = connect('/dev/ttyAMA0', baud=57600)
+        print("Connect ho gaya")
+        # self.vehicle.parameters['PLND_ENABLED'] = 1
+        # self.vehicle.parameters['PLND_TYPE'] = 1 ##1 for companion computer
+        # self.vehicle.parameters['PLND_EST_TYPE'] = 0 ##0 for raw sensor, 1 for kalman filter pos estimation
+        # self.vehicle.parameters['LAND_SPEED'] = 20 ##Descent speed of 30cm/s
         # Connect drone with raspberry pi, using physical port and not udp, 
         # coz it will be faster
         self.motor = motor.MotorController(self.vehicle)
@@ -39,6 +41,7 @@ class Driver():
         # arms and takes off to safe_height
         # returns success
         # it is a blocking call, until takeoff is over, the function doesn't return
+        self._set_guided_mode()
         while self.vehicle.is_armable != True:
             print("Waiting for vehicle to become armable.")
             time.sleep(1)
@@ -54,6 +57,7 @@ class Driver():
         time.sleep(3)
 
         # Takeoff to target altitude
+        print("Taking off")
         self.vehicle.simple_takeoff(self.safe_height)
         # Wait until the vehicle reaches the target altitude
         while True:
@@ -72,7 +76,7 @@ class Driver():
 
 
     def go_to_drop_location(self) -> None:
-        # goes to drop location, preserves height (it will be safe_height), then drops down to 10m altitude
+        # goes to drop location, preserves height (it will be safe_height)
         point = LocationGlobalRelative(self.drop_location[0], self.drop_location[1], self.safe_height)
         self.vehicle.simple_goto(point)
         # Wait until the vehicle reaches the target location
@@ -91,11 +95,16 @@ class Driver():
         # returns success
         current_height= self.vehicle.location.global_frame.alt
         desired_height=current_height-drop_height
-        point = LocationGlobalRelative(self.drop_location[0], self.drop_location[1], desired_height)
+        point = LocationGlobalRelative(
+            current_location.lat,      # Use current latitude
+            current_location.lon,      # Use current longitude
+            10 # Set the desired target altitude
+        )
         self.vehicle.simple_goto(point)
         new_height=self.vehicle.location.global_frame.alt
         while not (0.95 * desired_height <= new_height <= 1.05 * desired_height):
             print(f"Altitude: {self.vehicle.location.global_relative_frame.alt:.2f}m")
+            new_height=self.vehicle.location.global_frame.alt
         return True
 
     def lower_to_detect_landing_target(self) -> None:
@@ -143,7 +152,7 @@ class Driver():
     def drop_the_anda(self):
         # drops the damn anda
         self.motor.open()
-        time.sleep(5)
+        time.sleep(3)
         self.motor.stop()
 
     def go_home(self):

@@ -6,20 +6,23 @@ import landing_target
 
 def main():
     # the drop location is passed in through command line args:
-    # python main.py --drop_location 12.3456,78.9101,180,20 --safe_height 15
+    # python main.py --drop_location 12.3456,78.9101,180,20 --safe_height 15 --qr_code_size
     # where the values are lat, long, heading, alt
     # safe_height = the cruising height
+    # qr code size = the side length of the qr code
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--drop_location', type=str, required=True)
     parser.add_argument('--safe_height', type=float, required=False, default=15) 
+    parser.add_argument('--qr_code_size', type=float, required=False, default=28.5) 
     args = parser.parse_args()
     drop_location = tuple(map(float, args.drop_location.split(',')))
     # drop location will now be a tuple of lat, long, heading, alt
     safe_height = args.safe_height
+    qr_size = args.qr_code_size
     #create servo instance
     # 1. create an instance of LandingTarget
-    landingTarget = landing_target.LandingTarget()
+    landingTarget = landing_target.LandingTarget(known_qr_size_cm=qr_size)
     # 2. create an instance of Driver
     driver = dronekit_driver.Driver(drop_location=drop_location, safe_height=safe_height)
 
