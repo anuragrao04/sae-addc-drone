@@ -95,10 +95,11 @@ class Driver():
         # returns success
         current_height= self.vehicle.location.global_frame.alt
         desired_height=current_height-drop_height
+        current_location=self.vehicle.location.global_frame
         point = LocationGlobalRelative(
             current_location.lat,      # Use current latitude
             current_location.lon,      # Use current longitude
-            10 # Set the desired target altitude
+            desired_height # Set the desired target altitude
         )
         self.vehicle.simple_goto(point)
         new_height=self.vehicle.location.global_frame.alt
@@ -157,9 +158,49 @@ class Driver():
 
     def go_home(self):
         # goes to home location
-        # switch to RTL mode
-        self.vehicle.mode = VehicleMode('RTL')
-        while not self.vehicle.mode.name == 'RTL':
-            print("Waiting for RTL mode...")
+        point = LocationGlobalRelative(self.home_location.lat, self.home_location.lon, self.safe_height)
+        self.vehicle.simple_goto(point)
+        while True:
+            current_location = self.vehicle.location.global_relative_frame
+            target_distance = self.get_distance_meters(current_location, point)
+            print(f"Distance to home: {target_distance}m")
+            if target_distance <= 1:
+                print("Reached home location, starting landing procedure.")
+                break
             time.sleep(1)
-        print("Vehicle is now in RTL mode")
+        
+        print("Lowering to detect landing target...")
+        
+        
+    """
+    def land_on_aruco(self):
+        self.lower_to_detect_landing_target()
+
+        detection_attempts = 0
+        max_attempts = 10  # Fail-safe limit
+
+        while detection_attempts < max_attempts:
+            # Get ArUco marker detection values
+            marker_detected, angle_x, angle_y = detect_aruco_marker()  # Ensure this function exists and works
+
+            if marker_detected:
+                print(f"Marker detected: X={angle_x:.2f}, Y={angle_y:.2f}")
+                self.send_landing_target_vals(angle_x, angle_y)
+                self.drop_height(2)  # Gradual descent of 2m
+            else:
+                print("Landing target not detected. Hovering and retrying...")
+                detection_attempts += 1
+                time.sleep(1)
+
+        if detection_attempts >= max_attempts:
+            print("ArUco marker not detected after multiple attempts. Landing normally.")
+        
+        self.switch_to_land_mode()
+
+        # Wait until the drone lands
+        while not self.is_landed():
+            print("Landing in progress...")
+            time.sleep(2)
+
+        print("Drone has landed successfully.")
+        """  

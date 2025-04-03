@@ -206,3 +206,26 @@ class LandingTarget():
         # }
         if landing_target_vals is None: return None
         return landing_target_vals['angle_x'], landing_target_vals['angle_y']
+
+    def detect_aruco_marker(self):
+        """Detect ArUco marker and calculate landing target parameters."""
+        frame = self._get_frame()
+        gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        
+        # Define ArUco dictionary and parameters
+        aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
+        aruco_params = aruco.DetectorParameters()
+        
+        # Detect markers in the frame
+        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
+        
+        if ids is not None and len(corners) > 0:
+            print(f"Detected ArUco marker with ID: {ids.flatten()[0]}")
+            ordered_corners = self.order_points(corners[0][0])
+            landing_target_vals = self.calculate_landing_target_params(ordered_corners)
+            
+            if landing_target_vals:
+                return True, landing_target_vals['angle_x'], landing_target_vals['angle_y']
+        
+        print("No ArUco marker detected.")
+        return None
