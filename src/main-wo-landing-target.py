@@ -46,7 +46,8 @@ def main():
     driver.switch_to_land_mode()
 
     # 10. land
-    # while(not driver.is_landed()):
+    while(not driver.is_landed()):
+        time.sleep(1)
     #     la_target = landingTarget.get_landing_target_vals()
     #     if (la_target is None):
     #         print("No landing target detected.")
