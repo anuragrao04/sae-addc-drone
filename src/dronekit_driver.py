@@ -159,7 +159,7 @@ class Driver():
     def go_home(self):
         # goes to home location
         # switch to RTL mode
-        point = LocationGlobalRelative(self.home_location[0], self.home_location[1], self.safe_height)
+        point = LocationGlobalRelative(self.home_location.lat, self.home_location.lon, self.safe_height)
         self.vehicle.simple_goto(point)
         # Wait until the vehicle reaches the target location
         while True:
