@@ -225,7 +225,7 @@ class LandingTarget():
             landing_target_vals = self.calculate_landing_target_params(ordered_corners)
             
             if landing_target_vals:
-                return True, landing_target_vals['angle_x'], landing_target_vals['angle_y']
+                return landing_target_vals['angle_x'], landing_target_vals['angle_y']
         
         print("No ArUco marker detected.")
         return None
