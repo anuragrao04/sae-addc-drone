@@ -67,12 +67,12 @@ def main():
     
     #15. land on aruco
     driver.switch_to_land_mode()
-    while(not driver.is_landed()):
-        la_target = landingTarget.detect_aruco_marker()
-        if (la_target is None):
-            print("No landing target detected.")
-        else:
-            driver.send_landing_target_vals(la_target[0], la_target[1])
+#     while(not driver.is_landed()):
+#         la_target = landingTarget.detect_aruco_marker()
+#         if (la_target is None):
+#             print("No landing target detected.")
+#         else:
+#             driver.send_landing_target_vals(la_target[0], la_target[1])
     # 17. party!
 
 if __name__ == '__main__':

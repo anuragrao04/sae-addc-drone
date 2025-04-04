@@ -215,16 +215,15 @@ class LandingTarget():
         print("Grayed")
         
         # Define ArUco dictionary and parameters
-        aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
-        aruco_params = aruco.DetectorParameters()
+        aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_50)
+        aruco_params = aruco.DetectorParameters_create()
         print("Defined aruco params")
         
         # Detect markers in the frame
         print("gray frame: ", gray)
         print("Aruco_dict", aruco_dict)
         print("parameters: ", aruco_params)
-        
-        corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
+        corners, ids, rejected = aruco.detectMarkers(gray) 
         print("Corners: ", corners)
         
         if ids is not None and len(corners) > 0:
