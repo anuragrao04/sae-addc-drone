@@ -4,7 +4,7 @@ class MotorController:
     def __init__(self, vehicle):
         self.vehicle = vehicle  # Store vehicle instance
         self.servoNo = 9  # ArduPilot AUX port for PWM output
-        self.open_pwm = 2200  # Adjust as needed to open the mechanism
+        self.open_pwm = 3300  # Adjust as needed to open the mechanism
         self.stop_pwm = 0  # PWM value to stop the servo (adjust as needed)
 
     def control_servo(self, servo_number, pwm_value):

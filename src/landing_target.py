@@ -12,7 +12,7 @@ class LandingTarget():
     def __init__(self,
                  calibration_file='camera_calibration.pkl', 
                  known_qr_size_cm=28.5,
-                 camera_resolution=(1280, 720),
+                 camera_resolution=(1920, 1080),
                  ) -> None:
         self.qr_content_saved = False
         self.picam2 = Picamera2()
@@ -210,14 +210,22 @@ class LandingTarget():
     def detect_aruco_marker(self):
         """Detect ArUco marker and calculate landing target parameters."""
         frame = self._get_frame()
+        print("Got frame")
         gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+        print("Grayed")
         
         # Define ArUco dictionary and parameters
         aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_4X4_50)
         aruco_params = aruco.DetectorParameters()
+        print("Defined aruco params")
         
         # Detect markers in the frame
+        print("gray frame: ", gray)
+        print("Aruco_dict", aruco_dict)
+        print("parameters: ", aruco_params)
+        
         corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
+        print("Corners: ", corners)
         
         if ids is not None and len(corners) > 0:
             print(f"Detected ArUco marker with ID: {ids.flatten()[0]}")

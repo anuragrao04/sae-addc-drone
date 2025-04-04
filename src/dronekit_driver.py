@@ -95,12 +95,12 @@ class Driver():
         # returns success
         current_height= self.vehicle.location.global_frame.alt
         desired_height=current_height-drop_height
-        current_location=self.vehicle.location.global_frame
         point = LocationGlobalRelative(
             current_location.lat,      # Use current latitude
             current_location.lon,      # Use current longitude
-            desired_height # Set the desired target altitude
+            10 # Set the desired target altitude
         )
+
         self.vehicle.simple_goto(point)
         new_height=self.vehicle.location.global_frame.alt
         while not (0.95 * desired_height <= new_height <= 1.05 * desired_height):
@@ -158,23 +158,16 @@ class Driver():
 
     def go_home(self):
         # goes to home location
-        point = LocationGlobalRelative(self.home_location.lat, self.home_location.lon, self.safe_height)
+        # switch to RTL mode
+        point = LocationGlobalRelative(self.home_location[0], self.home_location[1], self.safe_height)
         self.vehicle.simple_goto(point)
+        # Wait until the vehicle reaches the target location
         while True:
             current_location = self.vehicle.location.global_relative_frame
             target_distance = self.get_distance_meters(current_location, point)
-            print(f"Distance to home: {target_distance}m")
-            if target_distance <= 1:
-                print("Reached home location, starting landing procedure.")
+            print(f"Distance to target: {target_distance}m")
+            if target_distance <= 1:  # Within 1 meter of target
+                print("Reached home location")
                 break
             time.sleep(1)
-        print("Lowering to detect landing target...")
 
-    def send_qr_data_to_gcs(self, qr_data: str) -> None:
-        # statustext
-        msg = self.vehicle.message_factory.statustext_send(
-            0,
-            qr_data.encode(),
-        )
-        self.vehicle.send_mavlink(msg)
-        self.vehicle.flush()

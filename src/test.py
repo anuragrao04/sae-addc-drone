@@ -34,11 +34,11 @@ def main():
     driver.arm_and_takeoff()
 
     # # 5. go to drop location
-    # driver.go_to_drop_location()
+    driver.go_to_drop_location()
 
     # 6. lower the drone to 10m
-    driver.lower_to_detect_landing_target()
-
+#    driver.lower_to_detect_landing_target()
+    time.sleep(5)
     # 69. Switch drone to land mode
     driver.switch_to_land_mode()
 
@@ -48,25 +48,25 @@ def main():
         if (la_target is None):
             print("No landing target detected.")
         else:
-            driver.send_landing_target_vals(*la_target)
+            driver.send_landing_target_vals(la_target[0], la_target[1])
     
     # 11. actuate the motor to drop the anda
     driver.drop_the_anda()
     # 12. wait for a few seconds for the anda to drop
     time.sleep(5)
     # 13. arm and takeoff
-    driver.arm_and_takeoff()
+#    driver.arm_and_takeoff()
 
     # 14. RTL home location set at step 3
-    driver.go_home()
+    # driver.go_home()
     #15. land on aruco
-    driver.switch_to_land_mode()
-    while(not driver.is_landed()):
-        la_target = landingTarget.detect_aruco_marker()
-        if (la_target is None):
-            print("No landing target detected.")
-        else:
-            driver.send_landing_target_vals(*la_target)
+#    driver.switch_to_land_mode()
+#     while(not driver.is_landed()):
+#         la_target = landingTarget.detect_aruco_marker()
+#         if (la_target is None):
+#             print("No landing target detected.")
+#         else:
+#             driver.send_landing_target_vals(*la_target)
     # 17. party!
 
 if __name__ == '__main__':
