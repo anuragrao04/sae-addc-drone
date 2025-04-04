@@ -205,7 +205,7 @@ class LandingTarget():
         #     'corners': corners
         # }
         if landing_target_vals is None: return None
-        return landing_target_vals['angle_x'], landing_target_vals['angle_y']
+        return landing_target_vals['angle_x'], landing_target_vals['angle_y'], qr_data
 
     def detect_aruco_marker(self):
         """Detect ArUco marker and calculate landing target parameters."""

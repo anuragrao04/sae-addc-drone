@@ -51,7 +51,9 @@ def main():
         if (la_target is None):
             print("No landing target detected.")
         else:
-            driver.send_landing_target_vals(*la_target)
+            driver.send_landing_target_vals(la_target[0], la_target[1])
+            if (la_target[2] is not None):
+                driver.send_qr_data_to_gcs(la_target[2])
     
     # 11. actuate the motor to drop the anda
     driver.drop_the_anda()
@@ -64,14 +66,13 @@ def main():
     driver.go_home()
     
     #15. land on aruco
-
     driver.switch_to_land_mode()
     while(not driver.is_landed()):
         la_target = landingTarget.detect_aruco_marker()
         if (la_target is None):
             print("No landing target detected.")
         else:
-            driver.send_landing_target_vals(*la_target)
+            driver.send_landing_target_vals(la_target[0], la_target[1])
     # 17. party!
 
 if __name__ == '__main__':

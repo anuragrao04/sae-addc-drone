@@ -168,39 +168,13 @@ class Driver():
                 print("Reached home location, starting landing procedure.")
                 break
             time.sleep(1)
-        
         print("Lowering to detect landing target...")
-        
-        
-    """
-    def land_on_aruco(self):
-        self.lower_to_detect_landing_target()
 
-        detection_attempts = 0
-        max_attempts = 10  # Fail-safe limit
-
-        while detection_attempts < max_attempts:
-            # Get ArUco marker detection values
-            marker_detected, angle_x, angle_y = detect_aruco_marker()  # Ensure this function exists and works
-
-            if marker_detected:
-                print(f"Marker detected: X={angle_x:.2f}, Y={angle_y:.2f}")
-                self.send_landing_target_vals(angle_x, angle_y)
-                self.drop_height(2)  # Gradual descent of 2m
-            else:
-                print("Landing target not detected. Hovering and retrying...")
-                detection_attempts += 1
-                time.sleep(1)
-
-        if detection_attempts >= max_attempts:
-            print("ArUco marker not detected after multiple attempts. Landing normally.")
-        
-        self.switch_to_land_mode()
-
-        # Wait until the drone lands
-        while not self.is_landed():
-            print("Landing in progress...")
-            time.sleep(2)
-
-        print("Drone has landed successfully.")
-        """  
+    def send_qr_data_to_gcs(self, qr_data: str) -> None:
+        # statustext
+        msg = self.vehicle.message_factory.statustext_send(
+            0,
+            qr_data.encode(),
+        )
+        self.vehicle.send_mavlink(msg)
+        self.vehicle.flush()
