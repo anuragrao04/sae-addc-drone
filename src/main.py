@@ -62,6 +62,18 @@ def main():
 
     # 14. RTL home location set at step 3
     driver.go_home()
+    
+    #15. land on aruco
+    while(not driver.is_landed()):
+        la_target = landingTarget.detect_aruco_marker()
+        if (la_target is None):
+            print("No landing target detected.")
+            driver.drop_height(2)
+            if(driver.vehicle.location.global_frame.alt<=5):
+                driver.switch_to_land_mode()
+        else:
+            driver.send_landing_target_vals(*la_target)
+        
     # 17. party!
 
 if __name__ == '__main__':
