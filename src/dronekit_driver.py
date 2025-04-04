@@ -170,7 +170,7 @@ class Driver():
                 print("Reached home location")
                 break
             time.sleep(1)
-    def send_qr_data_to_gcs(qr_data: str):
+    def send_qr_data_to_gcs(self, qr_data: str):
         self.vehicle.message_factory.statustext_send(
             1,  # 6 = Info, 3 = Critical, 2 = Alert, 0 = Emergency
             qr_data.encode()
